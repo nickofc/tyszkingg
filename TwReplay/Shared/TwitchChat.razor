@@ -1,0 +1,26 @@
+﻿<iframe id="twitch_chat_embed"
+        src="@GetChatUrl()">
+</iframe>
+
+<style>
+    #twitch_chat_embed {
+    display: block;
+    height: 100%;
+    width: 100%;
+    }
+</style>
+
+@code {
+
+    [Parameter]
+    public string ChannelName { get; set; }
+
+    [Parameter]
+    public string Parent { get; set; }
+
+    private string GetChatUrl()
+    {
+        return $"https://www.twitch.tv/embed/{ChannelName}/chat?parent={Parent}&darkpopout";
+    }
+
+}

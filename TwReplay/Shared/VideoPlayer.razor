@@ -1,0 +1,44 @@
+﻿<video class="video-js" controls preload="auto" data-setup="{}">
+    @foreach (var item in Items)
+    {
+        <source src="@item.Src" type="@item.Type"/>
+    }
+    <p class="vjs-no-js">
+        Aby obejrzeć ten film, włącz JavaScript i rozważ uaktualnienie do przeglądarki internetowej obsługującej wideo HTML5
+    </p>
+</video>
+
+@code {
+
+    [Parameter]
+    public List<VideoPlayerSourceItem> Items { get; set; }
+
+    public class VideoPlayerSourceItem
+    {
+        public string Src { get; set; }
+        public VideoPlayerSourceType Type { get; set; }
+
+        public VideoPlayerSourceItem(string src, VideoPlayerSourceType type)
+        {
+            Src = src;
+            Type = type;
+        }
+
+        public VideoPlayerSourceItem()
+        {
+        }
+    }
+
+    public class VideoPlayerSourceType
+    {
+        public static readonly VideoPlayerSourceType Mp4 = new VideoPlayerSourceType("video/mp4");
+
+        public string SourceType { get; }
+
+        public VideoPlayerSourceType(string sourceType)
+        {
+            SourceType = sourceType;
+        }
+    }
+
+}

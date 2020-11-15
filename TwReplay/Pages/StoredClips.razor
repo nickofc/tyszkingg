@@ -1,0 +1,75 @@
+﻿@page "/clips/saved"
+
+@using TwReplay.Data
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.Extensions.Caching.Memory
+@using Microsoft.Extensions.Logging
+@using System.Globalization
+@using Humanizer
+
+@inject ApplicationDbContext DbContext
+@inject ILogger<StoredClips> Logger;
+@inject IMemoryCache MemoryCache
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">Klipy</li>
+        <li class="breadcrumb-item active" aria-current="page">Zapisane klipy z Twitch</li>
+    </ol>
+</nav>
+
+@if (_clips == null)
+{
+    <p>
+        <em>Pobieranie listy klipów...</em>
+    </p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-bordered">
+            <thead>
+            <tr>
+                <th>Slug</th>
+                <th>Data archiwizacji</th>
+                <th>Tytuł</th>
+                <th>Klip</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var clip in _clips)
+            {
+                <tr>
+                    <td>@clip.ClipInfo.Slug</td>
+                    <td>@clip.AddedAt?.ToLocalTime().ToString("g", new CultureInfo("pl-PL"))</td>
+                    <td>@clip.ClipInfo.Title</td>
+                    <td>
+                        @foreach (var link in clip.Links)
+                        {
+                            <video width="512" height="288" controls preload="metadata">
+                                <source src="@link.Url.Replace(".html", ".ogg")" type="video/ogg">
+                                Your browser does not support the video tag.
+                            </video>
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+
+    private IReadOnlyCollection<ClipItem> _clips;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _clips = await DbContext.Clips
+            .Include(x => x.ClipInfo)
+            .Include(x => x.Links)
+            .OrderByDescending(x => x.ClipInfo.CreatedAt)
+            .ToArrayAsync();
+    }
+
+}

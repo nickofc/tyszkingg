@@ -1,0 +1,46 @@
+﻿@page "/player"
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">Player</li>
+        <li class="breadcrumb-item active" aria-current="page">Wspólne oglądanie</li>
+    </ol>
+</nav>
+
+<div class="d-flex flex-row test mb-3">
+    <button type="button" class="btn btn-primary mr-1">Tryb oglądania</button>
+    <button type="button" class="btn btn-primary">Panel administratora</button>
+</div>
+
+<Resizable Width="100" Height="100">
+    <Body>
+    <Resizable Width="50" Height="50">
+        <Body>
+        <TwitchPlayer Parent="localhost" ChannelName="adamcy_"></TwitchPlayer>
+        </Body>
+    </Resizable>
+    </Body>
+</Resizable>
+
+<style>
+    #my-video {
+    display: block;
+    height: 100%;
+    width: 100%;
+    }
+</style>
+
+@code {
+
+    public bool IsLoggedIn { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+    }
+
+    public bool SignIn(string username, string password)
+    {
+        return string.Equals("admin", username, StringComparison.InvariantCulture);
+    }
+
+}

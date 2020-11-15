@@ -1,0 +1,30 @@
+﻿<div class="resizable__box">
+    @Body
+</div>
+
+<style>
+    .resizable__box {
+    resize: both; 
+    overflow: auto; 
+    width: @AsPx(Width); 
+    height: @AsPx(Height);
+    }
+</style>
+
+@code {
+
+    [Parameter]
+    public RenderFragment Body { get; set; }
+
+    [Parameter]
+    public int Width { get; set; }
+
+    [Parameter]
+    public int Height { get; set; }
+
+    private string AsPx(int value)
+    {
+        return $"{value}px";
+    }
+
+}

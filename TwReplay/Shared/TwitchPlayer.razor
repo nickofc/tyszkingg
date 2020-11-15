@@ -1,0 +1,26 @@
+﻿<iframe id="twitch_video_embed" src="@GetTwitchVideoUrl()"
+        frameborder="0" allowfullscreen="true" scrolling="no">
+</iframe>
+
+<style>
+    #twitch_video_embed {
+    display: block;
+    height: 100%;
+    width: 100%;
+    }
+</style>
+
+@code {
+
+    [Parameter]
+    public string ChannelName { get; set; }
+
+    [Parameter]
+    public string Parent { get; set; }
+
+    private string GetTwitchVideoUrl()
+    {
+        return $"https://player.twitch.tv/?channel={ChannelName}&parent={Parent}";
+    }
+
+}

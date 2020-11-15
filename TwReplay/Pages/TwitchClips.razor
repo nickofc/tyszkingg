@@ -1,0 +1,63 @@
+﻿@page "/"
+@page "/clips/new"
+
+@using TwReplay.Services
+@using TwReplay.Twitch.Abstraction
+@using System.Globalization
+
+@inject TwitchClipService TwitchClipService
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">Klipy</li>
+        <li class="breadcrumb-item active" aria-current="page">Ostatnie klipy na Twitch</li>
+    </ol>
+</nav>
+
+@if (_clips == null)
+{
+    <p>
+        <em>Pobieranie listy klipów...</em>
+    </p>
+}
+else
+{
+    <div class="table-responsive">
+
+        <table class="table table-bordered">
+            <thead>
+            <tr>
+                <th>Slug</th>
+                <th>Data</th>
+                <th>Tytuł</th>
+                <th>Miniaturka</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var clip in _clips)
+            {
+                <tr>
+                    <td>@clip.Slug</td>
+                    <td>@clip.CreatedAt.ToLocalTime().ToString("g", new CultureInfo("pl-PL"))</td>
+                    <td>@clip.Title</td>
+                    <td>
+                        <img src="@clip.Thumbnails.Small" alt="@clip.Title" width="256" height="144">
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+
+    private IReadOnlyCollection<Clip> _clips;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _clips = await TwitchClipService.GetClips("tyszkingg");
+        _clips = _clips.OrderByDescending(x => x.CreatedAt).ToArray();
+    }
+
+}

@@ -55,7 +55,6 @@ namespace TwReplay
             services.AddScoped(_ => Configuration.GetValue<TwitchApiConfig>("TwitchApi"));
 
             services.AddMemoryCache();
-
             services.AddVideobinUploadService();
 
             services.AddScoped<TwitchApi>();

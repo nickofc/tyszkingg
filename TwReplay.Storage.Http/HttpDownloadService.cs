@@ -3,23 +3,29 @@ using System.IO;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using TwReplay.Storage.Abstraction;
 
 namespace TwReplay.Services.Download
 {
     public class HttpDownloadService : IDownloadService
     {
-        public HttpDownloadService(HttpClient httpClient)
+        public HttpDownloadService(HttpClient httpClient,
+            ILogger<HttpDownloadService> logger)
         {
             _httpClient = httpClient;
+            _logger = logger;
         }
 
         private readonly HttpClient _httpClient;
+        private readonly ILogger<HttpDownloadService> _logger;
 
         public async Task<DownloadPayload> Download(string url,
             ProgressManager<ProgressEvent> progressManager,
             CancellationToken cancellationToken = default)
         {
+            _logger.LogTrace($"Downloading the file {url}");
+
             var destination = new MemoryStream();
 
             HttpRequestMessage request = null;
@@ -32,7 +38,11 @@ namespace TwReplay.Services.Download
             {
                 request = new HttpRequestMessage(HttpMethod.Get, url);
                 response = await _httpClient.SendAsync(request, cancellationToken);
+
+                _logger.LogTrace($"Reading the stream from {url} - {response.StatusCode}.");
+
                 source = await response.Content.ReadAsStreamAsync(cancellationToken);
+                response.EnsureSuccessStatusCode();
 
                 var buffer = new byte[1024 * 10];
                 var totalSent = 0;
@@ -55,16 +65,21 @@ namespace TwReplay.Services.Download
                     progressManager.Report(progressEvent);
                 }
 
+                _logger.LogTrace($"Reading the stream from {url} completed.");
+
                 progressEvent.Completed = true;
                 progressEvent.Succeed = true;
 
                 progressManager.Report(progressEvent);
+
 
                 return new DownloadPayload(true,
                     destination.ToArray(), default);
             }
             catch (Exception ex)
             {
+                _logger.LogWarning(ex, $"There was a problem while downloading the file - {url}.");
+
                 progressEvent.Completed = true;
                 progressEvent.Succeed = false;
 

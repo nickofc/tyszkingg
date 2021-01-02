@@ -11,5 +11,6 @@ namespace TwReplay.Data
         public DateTime CreatedAt { get; set; }
         public string ClipItemId { get; set; }
         public ClipItem ClipItem { get; set; }
+        public bool IsAvailable { get; set; }
     }
 }

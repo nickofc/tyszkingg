@@ -30,6 +30,7 @@ namespace TwReplay.Services
 
                     var slugs = await dbContext.Clips
                         .Include(x => x.ClipInfo)
+                        .Where(x => x.ClipInfo.IsAvailable)
                         .Select(x => x.ClipInfo.Slug)
                         .ToArrayAsync(cancellationToken: stoppingToken);
 
@@ -37,8 +38,8 @@ namespace TwReplay.Services
                     clips = clips.Where(x => !slugs.Contains(x.Slug)).ToArray();
 
                     await reuploadService.Reupload(clips, stoppingToken);
-                }   
-                
+                }
+
                 stoppingToken.ThrowIfCancellationRequested();
                 await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
             }

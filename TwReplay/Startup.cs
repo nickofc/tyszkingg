@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Net.Http;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -9,12 +8,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Sentry;
 using TwReplay.Areas.Identity;
 using TwReplay.Data;
 using TwReplay.Services;
 using TwReplay.Services.Download;
 using TwReplay.Storage.Abstraction;
-using TwReplay.Storage.Videobin;
 using TwReplay.Twitch;
 using TwReplay.Twitch.Abstraction;
 
@@ -56,12 +56,7 @@ namespace TwReplay
 
             services.AddMemoryCache();
 
-            services.AddScoped<IUploadService>(provider =>
-            {
-                var httpClient = provider.GetRequiredService<HttpClient>();
-                var config = new VideobinUploadServiceConfig();
-                return new VideobinUploadService(httpClient, config);
-            });
+            services.AddVideobinUploadService();
 
             services.AddScoped<TwitchApi>();
             services.AddScoped<TwitchClipDownloader>();
@@ -70,17 +65,37 @@ namespace TwReplay
 
             services.AddScoped<ReuploadClipService>();
 
-            services.AddScoped<ITwitchApiClipsService, TwitchApiApiClipsService>();
+            services.AddScoped<ITwitchApiClipsService, TwitchApiClipsService>();
             services.AddScoped<IDownloadService, HttpDownloadService>();
 
             services.AddHostedService<ReuploadBackgroundService>();
+            services.AddHostedService<EnsureFileIsAvailableBackgroundService>();
 
             services.AddLogging();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ApplicationDbContext context)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env,
+            ILoggerFactory loggerFactory)
         {
+            loggerFactory.AddSentry(o =>
+            {
+                o.Debug = false;
+                o.DiagnosticsLevel = SentryLevel.Debug;
+
+                o.Dsn = Configuration["Sentry:DNS"];
+
+                if (string.IsNullOrEmpty(o.Dsn))
+                {
+                    throw new InvalidOperationException($"Key (sentry) not found.");
+                }
+
+                o.MaxBreadcrumbs = 150;
+
+                o.MinimumBreadcrumbLevel = LogLevel.Trace;
+                o.MinimumEventLevel = LogLevel.Error;
+            });
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

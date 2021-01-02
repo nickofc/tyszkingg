@@ -27,11 +27,35 @@ namespace TwReplay.Twitch.Tests
             var tokenPayload = await _twitchApi.GetToken();
             _twitchApi.SetAccessToken(tokenPayload.AccessToken);
 
-            var twitchClipsService = new TwitchApiApiClipsService(_twitchApi);
+            var twitchClipsService = new TwitchApiClipsService(_twitchApi);
             var clips = await twitchClipsService.GetClips("tyszkingg", 100);
 
             Assert.NotNull(clips);
             Assert.True(clips.Count > 0);
+        }
+
+        [Test]
+        public async Task GetClipBySlug()
+        {
+            var tokenPayload = await _twitchApi.GetToken();
+            _twitchApi.SetAccessToken(tokenPayload.AccessToken);
+
+            var twitchClipsService = new TwitchApiClipsService(_twitchApi);
+
+            var clip = await twitchClipsService.GetClip("DeliciousAbrasiveSandwichCopyThis");
+            Assert.IsNotNull(clip);
+        }
+
+        [Test]
+        public async Task GetClipBySlug_NotFound()
+        {
+            var tokenPayload = await _twitchApi.GetToken();
+            _twitchApi.SetAccessToken(tokenPayload.AccessToken);
+
+            var twitchClipsService = new TwitchApiClipsService(_twitchApi);
+
+            var clip = await twitchClipsService.GetClip("DeliciousAbrasiveSandwichCopyThis1");
+            Assert.IsNull(clip);
         }
     }
 }

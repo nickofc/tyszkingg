@@ -1,16 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using TwReplay.Twitch.Abstraction;
 
 namespace TwReplay.Twitch
 {
-    public class TwitchApiApiClipsService : ITwitchApiClipsService
+    public class TwitchApiClipsService : ITwitchApiClipsService
     {
         private readonly TwitchApi _twitchApi;
 
-        public TwitchApiApiClipsService(TwitchApi twitchApi)
+        public TwitchApiClipsService(TwitchApi twitchApi)
         {
             _twitchApi = twitchApi;
         }
@@ -27,6 +29,18 @@ namespace TwReplay.Twitch
             }
 
             return payload.Clips.ToArray();
+        }
+
+        public async Task<Clip> GetClip(string slug)
+        {
+            try
+            {
+                return await _twitchApi.Get<Clip>($"https://api.twitch.tv/kraken/clips/{slug}");
+            }
+            catch (HttpRequestException exception) when (exception.StatusCode == HttpStatusCode.NotFound)
+            {
+                return null;
+            }
         }
     }
 }

@@ -1,8 +1,8 @@
 ﻿@page "/"
 @page "/clips/new"
 
-@using TwReplay.Services
 @using System.Globalization
+@using TwitchLib.Api.V5
 @using TwitchLib.Api.V5.Models.Clips
 @using TwReplay.TTV
 
@@ -38,7 +38,7 @@ else
             @foreach (var clip in _clips)
             {
                 <tr>
-                    <td>@clip.TrackingId</td>
+                    <td>@clip.GetSlug()</td>
                     <td>@clip.CreatedAt.ToLocalTime().ToString("g", new CultureInfo("pl-PL"))</td>
                     <td>@clip.Title</td>
                     <td>

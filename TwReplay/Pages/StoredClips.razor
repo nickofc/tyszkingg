@@ -1,10 +1,10 @@
 ﻿@page "/clips/saved"
 
 @using TwReplay.Data
-@using Microsoft.EntityFrameworkCore
 @using Microsoft.Extensions.Caching.Memory
 @using Microsoft.Extensions.Logging
 @using System.Globalization
+@using Microsoft.EntityFrameworkCore
 
 @inject ApplicationDbContext DbContext
 @inject ILogger<StoredClips> Logger;
@@ -39,17 +39,14 @@ else
             @foreach (var clip in _clips)
             {
                 <tr>
-                    <td>@clip.ClipInfo.Slug</td>
-                    <td>@clip.AddedAt?.ToLocalTime().ToString("g", new CultureInfo("pl-PL"))</td>
-                    <td>@clip.ClipInfo.Title</td>
+                    <td>@clip.Slug</td>
+                    <td>@clip.AddedAt.ToLocalTime().ToString("g", new CultureInfo("pl-PL"))</td>
+                    <td>@clip.Description</td>
                     <td>
-                        @foreach (var link in clip.Links)
-                        {
-                            <video width="512" height="288" controls preload="metadata">
-                                <source src="@link.Url.Replace(".html", ".ogg")" type="video/ogg">
-                                Your browser does not support the video tag.
-                            </video>
-                        }
+                        <video width="512" height="288" controls preload="metadata">
+                            <source src="@clip.ClipLinkItem.Url.Replace(".html", ".ogg")" type="video/ogg">
+                            Your browser does not support the video tag.
+                        </video>
                     </td>
                 </tr>
             }
@@ -64,10 +61,9 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        _clips = await DbContext.Clips
-            .Include(x => x.ClipInfo)
-            .Include(x => x.Links)
-            .OrderByDescending(x => x.ClipInfo.CreatedAt)
+        _clips = await DbContext.ClipItems
+            .Include(x => x.ClipLinkItem)
+            .OrderByDescending(x => x.CreatedAt)
             .ToArrayAsync();
     }
 

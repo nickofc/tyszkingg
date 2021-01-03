@@ -14,9 +14,8 @@ namespace TwReplay.Data
             Database.EnsureCreated();
         }
 
-        public DbSet<ClipItem> Clips { get; protected set; }
-        public DbSet<ClipInfo> ClipInfos { get; protected set; }
-        public DbSet<ClipLinkInfo> ClipLinkInfos { get; protected set; }
+        public DbSet<ClipItem> ClipItems { get; protected set; }
+        public DbSet<ClipLinkItem> ClipLinkItems { get; protected set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

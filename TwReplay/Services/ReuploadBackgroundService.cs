@@ -1,10 +1,10 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using TwitchLib.Api.V5;
 using TwReplay.Data;
 using TwReplay.Reupload.Services;
 using TwReplay.TTV;
@@ -24,26 +24,32 @@ namespace TwReplay.Services
         {
             while (true)
             {
+                ReuploadBackgroundConfiguration reuploadBackgroundConfiguration;
+
                 using (var provider = _serviceScopeFactory.CreateScope())
                 {
                     var twitchClipService = provider.ServiceProvider.GetRequiredService<TwitchClipService>();
                     var reuploadService = provider.ServiceProvider.GetRequiredService<ReuploadService>();
                     var dbContext = provider.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                    var appConfiguration = provider.ServiceProvider.GetRequiredService<AppConfiguration>();
 
-                    var slugs = await dbContext.Clips
-                        .Include(x => x.ClipInfo)
-                        .Where(x => x.ClipInfo.IsAvailable)
-                        .Select(x => x.ClipInfo.Slug)
+                    reuploadBackgroundConfiguration = provider.ServiceProvider
+                        .GetRequiredService<ReuploadBackgroundConfiguration>();
+
+                    var slugs = await dbContext.ClipItems
+                        .Include(x => x.ClipLinkItem)
+                        .Where(x => x.ClipLinkItem.Availability == Availability.Available)
+                        .Select(x => x.Slug)
                         .ToArrayAsync(stoppingToken);
 
-                    var clips = await twitchClipService.GetClips("tyszkingg");
-                    clips = clips.Where(x => !slugs.Contains(x.TrackingId)).ToArray();
+                    var clips = await twitchClipService.GetClips(appConfiguration.Channel);
+                    clips = clips.Where(x => !slugs.Contains(x.GetSlug())).ToArray();
 
                     await reuploadService.Reupload(clips, stoppingToken);
                 }
 
                 stoppingToken.ThrowIfCancellationRequested();
-                await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
+                await Task.Delay(reuploadBackgroundConfiguration.Delay, stoppingToken);
             }
         }
     }

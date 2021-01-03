@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using TwitchLib.Api.V5;
 using TwitchLib.Api.V5.Models.Clips;
 using TwReplay.Data;
 
@@ -22,39 +23,32 @@ namespace TwReplay.Reupload.Services
         public async Task Reupload(IEnumerable<Clip> clips,
             CancellationToken cancellationToken)
         {
+            var clipItemsToAdd = new List<ClipItem>();
+
             foreach (var clip in clips)
             {
-                var reuplaodPayload = await _reuploadClipService
+                var reuploadPayload = await _reuploadClipService
                     .Reupload(clip, cancellationToken);
 
-                throw new NotImplementedException();
-                
                 var clipItem = new ClipItem
                 {
-                    Id = Guid.NewGuid().ToString(),
-                    ClipInfo =
+                    Slug = clip.GetSlug(),
+                    Description = clip.Title,
+                    CreatedAt = clip.CreatedAt,
+                    AddedAt = DateTimeOffset.Now,
+                    ClipLinkItem = new ClipLinkItem
                     {
-                        Id = Guid.NewGuid().ToString(),
-                        // Slug = clip.Slug,
-                        Title = clip.Title,
-                        Game = clip.Game,
-                        CreatedAt = clip.CreatedAt
-                    },
-                    Links =
-                    {
-                        new ClipLinkInfo
-                        {
-                            Id = Guid.NewGuid().ToString(),
-                            Provider = reuplaodPayload.Provider,
-                            Url = reuplaodPayload.Url,
-                        }
-                    },
-                    AddedAt = DateTimeOffset.UtcNow
+                        Availability = Availability.Unknown,
+                        ProviderType = reuploadPayload.Provider,
+                        Url = reuploadPayload.Url
+                    }
                 };
 
-                await _dbContext.Clips.AddAsync(clipItem, cancellationToken);
-                await _dbContext.SaveChangesAsync(cancellationToken);
+                clipItemsToAdd.Add(clipItem);
             }
+
+            await _dbContext.ClipItems.AddRangeAsync(clipItemsToAdd, cancellationToken);
+            await _dbContext.SaveChangesAsync(cancellationToken);
         }
     }
 }

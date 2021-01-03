@@ -1,6 +1,7 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using NUnit.Framework;
+using TwReplay.Twitch.Apis;
 
 namespace TwReplay.Twitch.Tests
 {

@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using TwReplay.Data;
+using TwReplay.Reupload.Services;
+using TwReplay.TTV;
 
 namespace TwReplay.Services
 {
@@ -32,10 +34,10 @@ namespace TwReplay.Services
                         .Include(x => x.ClipInfo)
                         .Where(x => x.ClipInfo.IsAvailable)
                         .Select(x => x.ClipInfo.Slug)
-                        .ToArrayAsync(cancellationToken: stoppingToken);
+                        .ToArrayAsync(stoppingToken);
 
                     var clips = await twitchClipService.GetClips("tyszkingg");
-                    clips = clips.Where(x => !slugs.Contains(x.Slug)).ToArray();
+                    clips = clips.Where(x => !slugs.Contains(x.TrackingId)).ToArray();
 
                     await reuploadService.Reupload(clips, stoppingToken);
                 }

@@ -6,9 +6,7 @@ namespace TwReplay.Storage.Abstraction
 {
     public interface IUploadService
     {
-        Task<string> GetRawUrl(string url);
-        Task<bool> IsFileAvailable(string url);
-        
+        Task<RemoteFileInfo> GetRemoteFileInfo(string url);
         Task<UploadPayload> Upload(Stream stream,
             ProgressManager<ProgressEvent> progressManager,
             CancellationToken cancellationToken = default);

@@ -20,28 +20,28 @@ namespace TwReplay.Storage.Videobin
             _logger = logger;
         }
 
-        public async Task<bool> IsFileAvailable(string url)
+        public bool FileUrlIsValid(string url)
         {
-            var frameUrl = url.Replace(".html", ".iframe.html");
+            if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
+                return false;
 
-            var body = await _httpClient.GetStringAsync(frameUrl);
-
-            var title = body.Substring(0, body.IndexOf("</title>", StringComparison.Ordinal))
-                .Substring(body.IndexOf("<title>", StringComparison.Ordinal), body.Length);
-
-            return false;
+            return string.Equals(uri.Host, "videobin.org", StringComparison.OrdinalIgnoreCase);
         }
 
-        public bool RawUrlSupport { get; } = true;
-
-        public async Task<string> GetRawUrl(string url)
+        public async Task<RemoteFileInfo> GetRemoteFileInfo(string url)
         {
-            if (!url.EndsWith(".html"))
-            {
-                throw new NotSupportedException("Url is not valid.");
-            }
+            if (!FileUrlIsValid(url))
+                return new RemoteFileInfo(false, default, url);
 
-            return url.Replace(".html", ".ogg");
+            if (!url.EndsWith(".html"))
+                return new RemoteFileInfo(false, default, url);
+
+            var response = await _httpClient.GetAsync(url);
+            if (!response.IsSuccessStatusCode)
+                return new RemoteFileInfo(false, null, url);
+
+            var rawUrl = url.Replace(".html", ".ogg");
+            return new RemoteFileInfo(true, rawUrl, url);
         }
 
         public async Task<UploadPayload> Upload(Stream stream,
@@ -66,7 +66,7 @@ namespace TwReplay.Storage.Videobin
                 var videoUrl = await response.Content
                     .ReadAsStringAsync(cancellationToken);
 
-                _logger.LogInformation($"File uploaded. Body from VideoBin service: {videoUrl}.");
+                _logger.LogTrace($"File uploaded. Body from VideoBin service: {videoUrl}.");
 
                 if (!Uri.IsWellFormedUriString(videoUrl, UriKind.Absolute))
                 {

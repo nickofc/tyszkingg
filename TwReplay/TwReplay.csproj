@@ -6,20 +6,25 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="5.0.0-rc.2.20475.17" />
-        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="5.0.0-rc.2.20475.17" />
-        <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="5.0.0-rc.2.20475.17" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.0-rc.2.20475.6" />
+        <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="5.0.1" />
+        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="5.0.1" />
+        <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="5.0.1" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.1">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="5.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="5.0.0" />
         <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="5.0.0-rc2" />
-        <PackageReference Include="Sentry.AspNetCore" Version="3.0.0-alpha.5" />
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="5.0.1" />
+        <PackageReference Include="Sentry.AspNetCore" Version="3.0.0-alpha.9" />
         <PackageReference Include="Serilog.Sinks.Sentry" Version="2.4.3" />
+        <PackageReference Include="TwitchLib" Version="3.1.1" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\TwReplay.Storage.Http\TwReplay.Storage.Http.csproj" />
       <ProjectReference Include="..\TwReplay.Storage.Videobin\TwReplay.Storage.Videobin.csproj" />
-      <ProjectReference Include="..\TwReplay.Twitch\TwReplay.Twitch.csproj" />
     </ItemGroup>
 
 </Project>

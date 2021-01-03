@@ -39,10 +39,10 @@ namespace TwReplay.Services.Download
                 request = new HttpRequestMessage(HttpMethod.Get, url);
                 response = await _httpClient.SendAsync(request, cancellationToken);
 
-                _logger.LogTrace($"Reading the stream from {url} - {response.StatusCode}.");
+                _logger.LogTrace($"Reading the stream from: {url} ({response.StatusCode}).");
 
-                source = await response.Content.ReadAsStreamAsync(cancellationToken);
                 response.EnsureSuccessStatusCode();
+                source = await response.Content.ReadAsStreamAsync(cancellationToken);
 
                 var buffer = new byte[1024 * 10];
                 var totalSent = 0;
@@ -65,7 +65,7 @@ namespace TwReplay.Services.Download
                     progressManager.Report(progressEvent);
                 }
 
-                _logger.LogTrace($"Reading the stream from {url} completed.");
+                _logger.LogTrace($"Reading stream from {url} completed.");
 
                 progressEvent.Completed = true;
                 progressEvent.Succeed = true;
@@ -78,7 +78,7 @@ namespace TwReplay.Services.Download
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, $"There was a problem while downloading the file - {url}.");
+                _logger.LogError(ex, $"Unable to download file: {url}.");
 
                 progressEvent.Completed = true;
                 progressEvent.Succeed = false;

@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using TwitchLib.Api.V5.Models.Clips;
 using TwReplay.Data;
-using TwReplay.Twitch.Abstraction;
 
-namespace TwReplay.Services
+namespace TwReplay.Reupload.Services
 {
     public class ReuploadService
     {
@@ -27,13 +27,15 @@ namespace TwReplay.Services
                 var reuplaodPayload = await _reuploadClipService
                     .Reupload(clip, cancellationToken);
 
+                throw new NotImplementedException();
+                
                 var clipItem = new ClipItem
                 {
                     Id = Guid.NewGuid().ToString(),
                     ClipInfo =
                     {
                         Id = Guid.NewGuid().ToString(),
-                        Slug = clip.Slug,
+                        // Slug = clip.Slug,
                         Title = clip.Title,
                         Game = clip.Game,
                         CreatedAt = clip.CreatedAt

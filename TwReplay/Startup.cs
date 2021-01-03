@@ -1,5 +1,5 @@
 using System;
-using System.Net.Http;
+using System.Linq;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Hosting;
@@ -10,13 +10,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Sentry;
+using TwitchLib.Api;
+using TwitchLib.Api.V5;
 using TwReplay.Areas.Identity;
 using TwReplay.Data;
 using TwReplay.Services;
-using TwReplay.Services.Download;
-using TwReplay.Storage.Abstraction;
-using TwReplay.Twitch;
-using TwReplay.Twitch.Abstraction;
 
 namespace TwReplay
 {
@@ -33,44 +31,56 @@ namespace TwReplay
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            /* Framework deps -- */
+
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection")));
-            services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
-                .AddEntityFrameworkStores<ApplicationDbContext>();
-            services.AddRazorPages();
-            services.AddServerSideBlazor();
-            services
-                .AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>
-                >();
             services.AddDatabaseDeveloperPageExceptionFilter();
 
-            services.AddHttpClient();
-
-            services.AddScoped(provider =>
+            services.AddDefaultIdentity<IdentityUser>(options =>
             {
-                var factory = provider.GetRequiredService<IHttpClientFactory>();
-                return factory.CreateClient();
+                options.Password.RequireDigit = false;
+                options.Password.RequireLowercase = false;
+                options.Password.RequireUppercase = false;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequiredLength = 6;
+                
+                options.SignIn.RequireConfirmedAccount = true;
+                options.SignIn.RequireConfirmedEmail = false;
+            }).AddEntityFrameworkStores<ApplicationDbContext>();
+            services.AddScoped<AuthenticationStateProvider,
+                RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
+
+            services.AddRazorPages();
+            services.AddServerSideBlazor();
+            services.AddHttpContextAccessor();
+            services.AddLogging();
+            services.AddHttpClient();
+            services.AddMemoryCache();
+
+            /* -- Framework deps */
+            
+            services.AddTwitchApi(o =>
+            {
+                o.ClientId = Configuration["TwitchApi:ClientId"];
+                o.ClientSecret = Configuration["TwitchApi:ClientSecret"];
             });
 
-            services.AddScoped(_ => Configuration.GetValue<TwitchApiConfig>("TwitchApi"));
-
-            services.AddMemoryCache();
+            services.AddHttpDownloadService();
             services.AddVideobinUploadService();
 
-            services.AddScoped<TwitchApi>();
-            services.AddScoped<TwitchClipDownloader>();
-            services.AddScoped<TwitchClipService>();
-            services.AddScoped<ReuploadService>();
+            // services.AddScoped<TwitchApi>();
+            // services.AddScoped<TwitchClipDownloader>();
+            // services.AddScoped<TwitchClipService>();
+            // services.AddScoped<ReuploadService>();
 
-            services.AddScoped<ReuploadClipService>();
+            // services.AddScoped<ReuploadClipService>();
 
-            services.AddScoped<ITwitchApiClipsService, TwitchApiClipsService>();
-            services.AddScoped<IDownloadService, HttpDownloadService>();
+            // services.AddScoped<ITwitchApiClipsService, TwitchApiClipsService>();
+            // services.AddScoped<IDownloadService, HttpDownloadService>();
 
-            services.AddHostedService<ReuploadBackgroundService>();
-            services.AddHostedService<EnsureFileIsAvailableBackgroundService>();
-
-            services.AddLogging();
+            // services.AddHostedService<ReuploadBackgroundService>();
+            // services.AddHostedService<EnsureFileIsAvailableBackgroundService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

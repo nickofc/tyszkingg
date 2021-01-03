@@ -1,6 +1,6 @@
-﻿namespace TwReplay.Twitch
+﻿namespace TwReplay.TTV
 {
-    public class TwitchApiConfig
+    public class TwitchApiOptions
     {
         public string ClientId { get; set; }
         public string ClientSecret { get; set; }

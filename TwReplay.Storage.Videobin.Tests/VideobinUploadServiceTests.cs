@@ -21,35 +21,40 @@ namespace TwReplay.Storage.Videobin.Tests
         }
 
         [Test]
-        public async Task UploadTest()
+        public async Task When_ProvideValidFile_Should_UploadFile()
         {
             var fs = File.OpenRead("sample.mp4");
+
             var uploadPayload = await _videobinUploadService.Upload(fs,
                 new ProgressManager<ProgressEvent>(), CancellationToken.None);
 
             Assert.True(uploadPayload.Succeed);
             Assert.IsNotEmpty(uploadPayload.Url);
             Assert.IsNull(uploadPayload.Exception);
-
-            await fs.DisposeAsync();
         }
 
         [Test]
-        public async Task GetRawUrlTest()
+        public async Task When_ServerReturnsNotFoundStatusCode_Should_ReturnNotAccessible()
         {
-            const string url = "https://videobin.org/+1dr7/1kcv.html";
-            var rawUrl = await _videobinUploadService.GetRawUrl(url);
+            const string urlThatNotExists = "https://videobin.org/+1dr7/1kca.html";
 
-            Assert.AreEqual("https://videobin.org/+1dr7/1kcv.ogg", rawUrl);
+            var remoteFileInfo = await _videobinUploadService.GetRemoteFileInfo(urlThatNotExists);
+
+            Assert.False(remoteFileInfo.Exists);
+            Assert.Null(remoteFileInfo.RawUrl);
+            Assert.AreEqual(urlThatNotExists, remoteFileInfo.Url);
         }
 
         [Test]
-        public async Task IsFileAvailableTest()
+        public async Task When_ServerReturnsOkStatusCode_Should_ReturnValidInfo()
         {
-            const string url = "https://videobin.org/+1dqy/1kcm.html";
-            var isFileAvailable = await _videobinUploadService.IsFileAvailable(url);
+            const string urlThatExists = "https://videobin.org/+1dr7/1kcv.html";
 
-            Assert.False(isFileAvailable);
+            var remoteFileInfo = await _videobinUploadService.GetRemoteFileInfo(urlThatExists);
+
+            Assert.True(remoteFileInfo.Exists);
+            Assert.AreEqual("https://videobin.org/+1dr7/1kcv.ogg", remoteFileInfo.RawUrl);
+            Assert.AreEqual(urlThatExists, remoteFileInfo.Url);
         }
     }
 }

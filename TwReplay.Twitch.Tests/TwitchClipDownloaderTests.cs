@@ -1,5 +1,7 @@
 ﻿using NUnit.Framework;
 using TwReplay.Twitch.Abstraction;
+using Clip = TwReplay.Twitch.Models.Clip;
+using Thumbnails = TwReplay.Twitch.Models.Thumbnails;
 
 namespace TwReplay.Twitch.Tests
 {

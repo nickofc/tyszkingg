@@ -61,10 +61,17 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        _clips = await DbContext.ClipItems
-            .Include(x => x.ClipLinkItem)
-            .OrderByDescending(x => x.CreatedAt)
-            .ToArrayAsync();
+        var cacheKey = $"{nameof(_clips)}-{ToString()}";
+
+        if (MemoryCache.TryGetValue(cacheKey, out _clips))
+        {
+            _clips = await DbContext.ClipItems
+                .Include(x => x.ClipLinkItem)
+                .OrderByDescending(x => x.CreatedAt)
+                .ToArrayAsync();
+
+            MemoryCache.Set(cacheKey, _clips, TimeSpan.FromMinutes(5));
+        }
     }
 
 }

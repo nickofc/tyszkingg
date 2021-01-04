@@ -2,11 +2,15 @@
 @page "/clips/new"
 
 @using System.Globalization
+@using Microsoft.Extensions.Caching.Memory
+@using Microsoft.Extensions.Configuration
 @using TwitchLib.Api.V5
 @using TwitchLib.Api.V5.Models.Clips
 @using TwReplay.TTV
 
 @inject TwitchClipService TwitchClipService
+@inject IConfiguration Configuration
+@inject IMemoryCache MemoryCache
 
 <nav aria-label="breadcrumb">
     <ol class="breadcrumb">
@@ -24,7 +28,6 @@
 else
 {
     <div class="table-responsive">
-
         <table class="table table-bordered">
             <thead>
             <tr>
@@ -55,10 +58,20 @@ else
 
     private IReadOnlyCollection<Clip> _clips;
 
+    // TODO - move logic to some service.
+
     protected override async Task OnInitializedAsync()
     {
-        _clips = await TwitchClipService.GetClips("tyszkingg");
-        _clips = _clips.OrderByDescending(x => x.CreatedAt).ToArray();
+        var channel = Configuration["App:Channel"];
+        var cacheKey = $"{nameof(_clips)}-{channel}-{ToString()}";
+
+        if (!MemoryCache.TryGetValue(cacheKey, out _clips))
+        {
+            _clips = await TwitchClipService.GetClips(channel);
+            _clips = _clips.OrderByDescending(x => x.CreatedAt).ToArray();
+
+            MemoryCache.Set(cacheKey, _clips, TimeSpan.FromMinutes(5));
+        }
     }
 
 }

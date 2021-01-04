@@ -11,5 +11,6 @@ namespace TwReplay.Data
         public ClipLinkItem ClipLinkItem { get; set; }
 
         public DateTimeOffset AddedAt { get; set; }
+        public bool ClipDeleted { get; set; }
     }
 }

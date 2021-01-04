@@ -22,7 +22,7 @@ namespace TwReplay.Reupload.Services
             _uploadService = uploadService;
         }
 
-        public async Task<ReuplaodPayload> Reupload(Clip clip,
+        public async Task<ReuploadPayload> Reupload(Clip clip,
             CancellationToken cancellationToken = default)
         {
             var progressManager = new ProgressManager<ProgressEvent>();
@@ -33,7 +33,7 @@ namespace TwReplay.Reupload.Services
 
             if (!downloadPayload.Succeed)
             {
-                return new ReuplaodPayload(ReuplaodPayload.ReuploadStatus.DownloadFailed);
+                return new ReuploadPayload(ReuploadStatus.DownloadFailed);
             }
 
             var memoryStream = new MemoryStream(downloadPayload.File);
@@ -42,10 +42,10 @@ namespace TwReplay.Reupload.Services
 
             if (!uploadPayload.Succeed)
             {
-                return new ReuplaodPayload(ReuplaodPayload.ReuploadStatus.UploadFailed);
+                return new ReuploadPayload(ReuploadStatus.UploadFailed);
             }
 
-            return new ReuplaodPayload(ReuplaodPayload.ReuploadStatus.Ok,
+            return new ReuploadPayload(ReuploadStatus.Ok,
                 uploadPayload.Url, _uploadService.GetType().Name);
         }
     }

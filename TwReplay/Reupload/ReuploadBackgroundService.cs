@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using TwitchLib.Api.V5;
@@ -31,7 +32,7 @@ namespace TwReplay.Services
                     var twitchClipService = provider.ServiceProvider.GetRequiredService<TwitchClipService>();
                     var reuploadService = provider.ServiceProvider.GetRequiredService<ReuploadService>();
                     var dbContext = provider.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                    var appConfiguration = provider.ServiceProvider.GetRequiredService<AppConfiguration>();
+                    var appConfiguration = provider.ServiceProvider.GetRequiredService<IConfiguration>();
 
                     reuploadBackgroundConfiguration = provider.ServiceProvider
                         .GetRequiredService<ReuploadBackgroundConfiguration>();
@@ -42,7 +43,7 @@ namespace TwReplay.Services
                         .Select(x => x.Slug)
                         .ToArrayAsync(stoppingToken);
 
-                    var clips = await twitchClipService.GetClips(appConfiguration.Channel);
+                    var clips = await twitchClipService.GetClips(appConfiguration["App:Channel"]);
                     clips = clips.Where(x => !slugs.Contains(x.GetSlug())).ToArray();
 
                     await reuploadService.Reupload(clips, stoppingToken);

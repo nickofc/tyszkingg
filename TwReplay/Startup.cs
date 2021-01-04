@@ -14,6 +14,7 @@ using TwitchLib.Api;
 using TwitchLib.Api.V5;
 using TwReplay.Areas.Identity;
 using TwReplay.Data;
+using TwReplay.Database;
 using TwReplay.Services;
 
 namespace TwReplay
@@ -33,8 +34,14 @@ namespace TwReplay
         {
             /* Framework deps -- */
 
-            services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection")));
+            services.AddDatabase<ApplicationDbContext>(o =>
+            {
+                var databaseEngineTypeFactory = new DatabaseEngineTypeFactory();
+
+                o.EngineType = databaseEngineTypeFactory.Get(Configuration["Database:EngineType"]);
+                o.ConnectionString = Configuration["Database:ConnectionString"];
+            });
+
             services.AddDatabaseDeveloperPageExceptionFilter();
 
             services.AddDefaultIdentity<IdentityUser>(options =>
@@ -44,7 +51,7 @@ namespace TwReplay
                 options.Password.RequireUppercase = false;
                 options.Password.RequireNonAlphanumeric = false;
                 options.Password.RequiredLength = 6;
-                
+
                 options.SignIn.RequireConfirmedAccount = true;
                 options.SignIn.RequireConfirmedEmail = false;
             }).AddEntityFrameworkStores<ApplicationDbContext>();
@@ -53,21 +60,25 @@ namespace TwReplay
 
             services.AddRazorPages();
             services.AddServerSideBlazor();
+
             services.AddHttpContextAccessor();
             services.AddLogging();
             services.AddHttpClient();
             services.AddMemoryCache();
 
             /* -- Framework deps */
-            
+
             services.AddTwitchApi(o =>
             {
                 o.ClientId = Configuration["TwitchApi:ClientId"];
-                o.ClientSecret = Configuration["TwitchApi:ClientSecret"];
+                o.AccessToken = Configuration["TwitchApi:ClientSecret"];
             });
 
             services.AddHttpDownloadService();
             services.AddVideobinUploadService();
+
+            services.AddReuploadBackgroundService(o => { o.Delay = TimeSpan.FromMinutes(5); });
+
 
             // services.AddScoped<TwitchApi>();
             // services.AddScoped<TwitchClipDownloader>();

@@ -9,32 +9,36 @@ namespace TwitchLib.Api
     // ReSharper disable once InconsistentNaming
     public static class TwitchAPIServiceCollectionExtensions
     {
-        public static IServiceCollection AddTwitchApi(this IServiceCollection serviceCollection,
-            Action<TwitchApiOptions> configFunc)
+        public static IServiceCollection AddTwitchApi(this IServiceCollection services,
+            Action<TwitchApiOptions> configure)
         {
-            var config = new TwitchApiOptions();
-            configFunc(config);
-            return serviceCollection.AddTwitchApi(config);
+            if (configure == null) 
+                throw new ArgumentNullException(nameof(configure));
+            
+            var twitchApiOptions = new TwitchApiOptions();
+            configure(twitchApiOptions);
+            
+            return services.AddTwitchApi(twitchApiOptions);
         }
 
-        public static IServiceCollection AddTwitchApi(this IServiceCollection serviceCollection,
-            TwitchApiOptions options)
+        public static IServiceCollection AddTwitchApi(this IServiceCollection services,
+            TwitchApiOptions twitchApiOptions)
         {
-            if (options == null)
-                throw new ArgumentNullException(nameof(options));
+            if (twitchApiOptions == null)
+                throw new ArgumentNullException(nameof(twitchApiOptions));
 
-            return serviceCollection.AddScoped(_ =>
-            {
-                return new TwitchAPI
+            return services.AddScoped(_ =>
                 {
-                    Settings =
+                    return new TwitchAPI
                     {
-                        ClientId = options.ClientId,
-                        Secret = options.ClientSecret
-                    }
-                };
-            }).AddScoped<TwitchClipService>()
-              .AddScoped<TwitchClipDownloader>();
+                        Settings =
+                        {
+                            ClientId = twitchApiOptions.ClientId,
+                            AccessToken = twitchApiOptions.AccessToken
+                        }
+                    };
+                }).AddScoped<TwitchClipService>()
+                .AddScoped<TwitchClipDownloader>();
         }
     }
 }
